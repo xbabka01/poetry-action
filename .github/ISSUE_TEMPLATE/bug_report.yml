@@ -1,0 +1,33 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Action version
+      description: The ref you use, e.g. `v2` or a commit SHA
+    validations:
+      required: true
+  - type: input
+    id: runner
+    attributes:
+      label: Runner OS
+      placeholder: ubuntu-latest
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Workflow step
+      description: The `uses:` step with its `with:` inputs
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: Expected vs. actual behavior, with relevant log output
+    validations:
+      required: true
