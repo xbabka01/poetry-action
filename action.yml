@@ -45,6 +45,10 @@ runs:
         pipx install --force --python "$PYTHON_PATH" "$spec"
         bin_dir="$(pipx environment --value PIPX_BIN_DIR)"
         echo "$bin_dir" >> "$GITHUB_PATH"
+        # On Windows runners bash needs a POSIX path in PATH
+        if command -v cygpath >/dev/null 2>&1; then
+          bin_dir="$(cygpath -u "$bin_dir")"
+        fi
         export PATH="$bin_dir:$PATH"
         poetry --version
         poetry config virtualenvs.create true
