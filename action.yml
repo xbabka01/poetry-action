@@ -20,12 +20,14 @@ runs:
   steps:
     - name: Set up Python ${{ inputs.python_version }}
       id: setup-python
-      uses: actions/setup-python@v7
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: ${{ inputs.python_version }}
     - name: Install poetry ${{ inputs.poetry_version }}
       env:
         POETRY_VERSION: ${{ inputs.poetry_version }}
+        PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        VIRTUALENVS_PATH: ${{ github.workspace }}/.virtualenvs
       run: |
         spec="poetry"
         if [[ -n "$POETRY_VERSION" ]]; then
@@ -36,10 +38,16 @@ runs:
             spec="poetry$POETRY_VERSION"
           fi
         fi
-        python -m pip install --upgrade pip
-        python -m pip install "$spec"
+        # Install poetry into its own isolated environment so it doesn't clash with project dependencies
+        if ! command -v pipx >/dev/null 2>&1; then
+          "$PYTHON_PATH" -m pip install pipx
+        fi
+        pipx install --force --python "$PYTHON_PATH" "$spec"
+        bin_dir="$(pipx environment --value PIPX_BIN_DIR)"
+        echo "$bin_dir" >> "$GITHUB_PATH"
+        export PATH="$bin_dir:$PATH"
         poetry --version
         poetry config virtualenvs.create true
         poetry config virtualenvs.in-project false
-        poetry config virtualenvs.path .virtualenvs
+        poetry config virtualenvs.path "$VIRTUALENVS_PATH"
       shell: bash

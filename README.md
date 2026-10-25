@@ -3,7 +3,8 @@
 Composite GitHub Action that sets up Python via [`actions/setup-python`](https://github.com/actions/setup-python)
 and installs [Poetry](https://python-poetry.org/).
 
-Poetry is configured to create virtualenvs in `.virtualenvs` (outside the project directory).
+Poetry is installed with [pipx](https://pipx.pypa.io/) into its own isolated environment, so it doesn't
+interfere with project dependencies. Virtualenvs are created in `$GITHUB_WORKSPACE/.virtualenvs`.
 
 ## Usage
 
