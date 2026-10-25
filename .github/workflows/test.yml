@@ -1,0 +1,44 @@
+name: Test action
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.15", "3.14"]
+        poetry: ["", ">=2,<3"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: setup
+        uses: ./
+        with:
+          python_version: ${{ matrix.python }}
+          poetry_version: ${{ matrix.poetry }}
+
+      - name: Verify
+        shell: bash
+        env:
+          EXPECTED_PY: ${{ matrix.python }}
+          GOT_PY: ${{ steps.setup.outputs.python_version }}
+          POETRY_VERSION: ${{ matrix.poetry }}
+        run: |
+          [[ "$GOT_PY" == "$EXPECTED_PY"* ]] || { echo "Unexpected python_version output: $GOT_PY"; exit 1; }
+          poetry --version
+          if [[ "$POETRY_VERSION" =~ ^[0-9] ]]; then
+            poetry --version | grep -F "$POETRY_VERSION"
+          fi
+          poetry config virtualenvs.path
+          poetry new demo
+          cd demo
+          poetry install
+          poetry run python --version | grep -F "$EXPECTED_PY"
